@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>SmartFactory Twin 2.0</title>
+<meta name="description" content="Browser-based industrial maintenance competition for the classroom.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23070d17'/%3E%3Cpath d='M6 24V12l6 4v-4l6 4v-4l8 5v7z' fill='%232fd3f5'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>SmartFactory <span>Twin</span> <small>2.0</small></h1>
+      <span class="sim" id="backendChip">SIMULATED DATA · BROWSER PROTOTYPE</span>
+    </div>
+    <span class="conn" id="connChip" data-s="connecting"><i></i><span>Connecting…</span></span>
+    <div class="clock"><span class="lbl">Operator</span><span id="opName" class="opname">Not registered</span></div>
+  </header>
+
+  <!-- ============================================================ HOME / REGISTRATION -->
+  <main id="scrHome" class="screen">
+    <section class="hero card">
+      <div>
+        <span class="lbl">Industrial maintenance competition</span>
+        <h2>Run Hall A for one 6-minute shift</h2>
+        <p class="note">Keep three machines producing, prevent breakdowns, and complete four missions. Everyone in a competition gets the same factory, the same faults, at the same moment.</p>
+      </div>
+    </section>
+    <section class="home-grid">
+      <form class="card reg" id="joinForm" novalidate>
+        <div class="card-head"><h2>Join a competition</h2><span class="lbl">Students</span></div>
+        <label for="jName">Your name</label>
+        <input id="jName" type="text" maxlength="24" autocomplete="nickname" placeholder="e.g. Ana K." required>
+        <label for="jCode">Competition code</label>
+        <input id="jCode" class="code-in" type="text" maxlength="7" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABC123" required>
+        <span class="err" id="jErr" role="alert" hidden></span>
+        <button class="btn primary" type="submit" id="jBtn">Join competition</button>
+      </form>
+      <form class="card reg" id="hostForm" novalidate>
+        <div class="card-head"><h2>Host a competition</h2><span class="lbl">Instructor</span></div>
+        <fieldset class="seg" aria-label="Competition mode">
+          <label><input type="radio" name="hMode" value="individual" checked><span>Individual</span></label>
+          <label><input type="radio" name="hMode" value="team"><span>Teams</span></label>
+        </fieldset>
+        <label for="hSize" class="team-only">Players per team</label>
+        <input id="hSize" class="team-only" type="number" min="2" max="8" value="4" inputmode="numeric">
+        <p class="note">You get a code to show on the projector. Students join from their own devices; you start the shift for everyone.</p>
+        <span class="err" id="hErr" role="alert" hidden></span>
+        <button class="btn primary" type="submit">Create competition</button>
+        <button class="btn" type="button" id="hResume" hidden>Resume hosting</button>
+      </form>
+      <form class="card reg" id="practiceForm" novalidate>
+        <div class="card-head"><h2>Practice</h2><span class="lbl">Solo · offline</span></div>
+        <label for="pName">Your name or team name</label>
+        <input id="pName" type="text" maxlength="24" autocomplete="nickname" placeholder="e.g. Team Lahti">
+        <p class="note">The original single-player shift with pause, time ×4, the instructor panel (<kbd>I</kbd>) and the class leaderboard on this device.</p>
+        <span class="err" id="pErr" role="alert" hidden>Enter a name with 2 to 24 characters.</span>
+        <button class="btn" type="submit">Start practice shift</button>
+      </form>
+    </section>
+    <section class="card brief">
+      <div class="card-head"><h2>Shift briefing</h2></div>
+      <ul>
+        <li>Keep the machines producing. Every running machine adds output.</li>
+        <li>Faster line speed means more output and hotter machines.</li>
+        <li>Above 95 °C for 5 seconds, a machine breaks down.</li>
+        <li>Running hot wears a machine down. At 0% health it breaks.</li>
+        <li>To repair: switch the machine OFF, then hold Repair for 3 seconds.</li>
+        <li>Use the Forecast lines and the What-if test to act before problems happen.</li>
+        <li><b>Score</b> = output + 150 per mission − 200 per breakdown.</li>
+      </ul>
+    </section>
+  </main>
+
+  <!-- ============================================================ PLAYER LOBBY -->
+  <main id="scrLobby" class="screen" hidden>
+    <section class="card lobby-head">
+      <div>
+        <span class="lbl">Competition</span>
+        <div class="bigcode num" id="lCode">------</div>
+      </div>
+      <div class="lobby-me">
+        <span class="lbl">You are</span>
+        <b id="lName"></b>
+        <span id="lTeam" class="teamtag" hidden></span>
+      </div>
+      <div class="lobby-state">
+        <span class="lbl">Status</span>
+        <b id="lStatus">Waiting for the host to start</b>
+        <span class="note" id="lMode"></span>
+      </div>
+      <button class="btn" id="lLeave">Leave</button>
+    </section>
+    <section class="card">
+      <div class="card-head"><h2>Operators in the lobby</h2><span class="lbl" id="lCount">0 joined</span></div>
+      <div class="roster" id="lRoster"></div>
+    </section>
+  </main>
+
+  <!-- ============================================================ CONTROL ROOM (game) -->
+  <main id="scrGame" class="screen game" hidden>
+    <section class="shiftbar card">
+      <div class="sb-mode"><span class="lbl" id="gModeLbl">Practice shift</span><span id="gTeam" class="teamtag" hidden></span></div>
+      <div class="sb-ctl" id="practiceCtl">
+        <button class="btn" id="btnFast" aria-pressed="false" title="Run the clock 4× faster (for testing)">Time ×1</button>
+        <button class="btn" id="btnPause">Pause</button>
+        <button class="btn primary" id="btnStart">Restart shift</button>
+        <button class="btn" id="btnExit">Exit</button>
+      </div>
+      <div class="clock" id="gRankBox" hidden><span class="lbl">Live rank</span><span class="num" id="gRank">–</span></div>
+      <div class="clock"><span class="lbl">Score</span><span class="num" id="gScore">0</span></div>
+      <div class="clock"><span class="lbl">Shift time</span><span class="num" id="clock">0:00 / 6:00</span></div>
+    </section>
+
+    <section class="main">
+      <div class="card floor">
+        <div class="card-head"><h2>Plant floor</h2><span class="lbl">Hall A · 3 machines</span></div>
+        <svg id="floor" viewBox="0 0 600 330" role="img" aria-label="Factory floor with three machines"></svg>
+        <div class="floor-help">
+          <span><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> select</span>
+          <span><kbd>E</kbd> ON / OFF</span>
+          <span>hold <kbd>R</kbd> repair (machine must be OFF)</span>
+          <span><kbd>+</kbd><kbd>−</kbd> speed</span>
+          <span class="practice-only"><kbd>Space</kbd> pause</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>Monitoring dashboard</h2><span class="lbl">°C · last 60 s</span></div>
+        <div class="rows" id="rows"></div>
+        <div class="kpis">
+          <div class="kpi"><span class="lbl">Output</span><span class="num" id="kOut">0</span></div>
+          <div class="kpi"><span class="lbl">Breakdowns</span><span class="num" id="kBrk">0</span></div>
+          <div class="kpi"><span class="lbl">Line speed</span>
+            <span class="speed"><button class="btn" id="spDn" aria-label="Lower speed">−</button><span class="num" id="kSpd">1.0×</span><button class="btn" id="spUp" aria-label="Raise speed">+</button></span>
+          </div>
+        </div>
+        <div class="whatif">
+          <div class="whatif-head">
+            <h3>What-if test</h3>
+            <span class="lbl">Try a speed without touching the factory</span>
+            <span class="speed"><button class="btn" id="wiDn" aria-label="Lower test speed">−</button><span class="num" id="wiSpd">1.0×</span><button class="btn" id="wiUp" aria-label="Raise test speed">+</button></span>
+          </div>
+          <div class="wi-grid" id="wiGrid"></div>
+          <div class="wi-foot"><span>Output at this speed: <b class="num" id="wiOut">0</b> units/s</span><button class="btn primary" id="wiApply">Apply to factory</button></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="bottom">
+      <div class="card mission">
+        <span class="lbl" id="mLabel">Mission 1 of 4</span>
+        <h3 id="mTitle">Press “Start shift” to begin</h3>
+        <p class="note" id="mText" style="margin:0">Everyone in the class starts together. The same faults happen at the same time in every copy.</p>
+        <div class="bar"><i id="mBar"></i></div>
+        <div class="steps" id="steps"></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>Event log</h2><span class="lbl">Scripted timeline</span></div>
+        <div class="timeline"><span class="step" id="ev1">2:30 Cutter coolant fault</span><span class="step" id="ev2">4:30 Oven trip</span><span class="step" id="ev3">6:00 Shift ends</span></div>
+        <ul class="log" id="log"></ul>
+      </div>
+    </section>
+
+    <section class="card" id="gStandings" hidden>
+      <div class="card-head"><h2>Live standings</h2><span class="lbl" id="gStandLbl">Provisional · updates automatically</span></div>
+      <div id="gBoard"></div>
+    </section>
+
+    <!-- practice-only instructor panel (toggle with I) — unchanged from 1.0 -->
+    <section class="card instr" id="instr" hidden>
+      <div class="card-head"><h2>Instructor panel</h2><span class="lbl">Practice copy only · toggle with <kbd>I</kbd></span></div>
+      <div class="row-ctl">
+        <button class="btn" id="iBreak">Break selected machine</button>
+        <button class="btn" id="iFault">Coolant fault on selected</button>
+        <button class="btn" id="iSkip">Skip mission</button>
+        <button class="btn" id="iEnd">End shift now</button>
+      </div>
+      <div class="board">
+        <div class="card-head" style="margin:14px 0 6px"><h2>Class leaderboard</h2><span class="lbl">Stored on this device</span></div>
+        <form id="addForm" class="addrow" novalidate>
+          <input id="aName" type="text" maxlength="24" placeholder="Name" aria-label="Player name">
+          <input id="aScore" type="number" inputmode="numeric" placeholder="Score" aria-label="Score">
+          <input id="aCode" type="text" maxlength="4" placeholder="Code" aria-label="Result code">
+          <button class="btn primary" type="submit">Add</button>
+        </form>
+        <span class="err" id="aErr" hidden></span>
+        <div class="tbl"><table><thead><tr><th>#</th><th>Operator</th><th>Score</th><th>Breakdowns</th><th></th></tr></thead><tbody id="board"></tbody></table></div>
+        <button class="btn" id="bClear">Clear leaderboard</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============================================================ HOST CONSOLE -->
+  <main id="scrHost" class="screen" hidden>
+    <section class="card host-head">
+      <div>
+        <span class="lbl">Join at this page with code</span>
+        <div class="bigcode num" id="hCode">------</div>
+        <span class="note" id="hLink"></span>
+      </div>
+      <div class="host-stat"><span class="lbl">Status</span><b id="hStatus">Lobby</b><span class="note" id="hModeTxt"></span></div>
+      <div class="host-stat"><span class="lbl">Shift time</span><b class="num" id="hClock">0:00 / 6:00</b></div>
+      <div class="host-actions" id="hActions"></div>
+    </section>
+
+    <section class="card" id="hLobbyCard">
+      <div class="card-head"><h2>Participants</h2><span class="lbl" id="hCount">0 joined</span></div>
+      <div class="host-tools">
+        <fieldset class="seg" aria-label="Competition mode">
+          <label><input type="radio" name="hcMode" value="individual"><span>Individual</span></label>
+          <label><input type="radio" name="hcMode" value="team"><span>Teams</span></label>
+        </fieldset>
+        <label class="inline team-only2">Team size <input id="hcSize" type="number" min="2" max="8" value="4" inputmode="numeric"></label>
+        <button class="btn team-only2" id="hAssign">Assign teams automatically</button>
+        <span class="sim-tools" id="simTools" hidden>
+          <span class="lbl">Simulated players</span>
+          <button class="btn" id="simAdd1">+1</button>
+          <button class="btn" id="simAdd5">+5</button>
+          <button class="btn" id="simFill">Fill to 25</button>
+          <button class="btn" id="simClear">Remove all</button>
+        </span>
+      </div>
+      <p class="note" id="simNote" hidden>Simulated players are generated by this browser and played by a computer strategy. They are labelled <span class="simtag">SIM</span> everywhere and are not real students.</p>
+      <div class="roster" id="hRoster"></div>
+    </section>
+
+    <section class="card" id="hLiveCard" hidden>
+      <div class="card-head">
+        <h2>Live leaderboard</h2>
+        <div class="seg small" role="tablist" id="hView">
+          <button class="btn" role="tab" data-v="players" aria-selected="true">Players</button>
+          <button class="btn team-only2" role="tab" data-v="teams" aria-selected="false">Teams</button>
+        </div>
+      </div>
+      <div id="hBoard"></div>
+    </section>
+
+    <section class="card instr" id="hEvents" hidden>
+      <div class="card-head"><h2>Host events</h2><span class="lbl">Hit every student at the same shift second</span></div>
+      <div class="row-ctl" id="hEvBtns"></div>
+    </section>
+  </main>
+
+  <!-- ============================================================ WINNER ANNOUNCEMENT -->
+  <main id="scrResults" class="screen results" hidden>
+    <canvas id="confetti" aria-hidden="true"></canvas>
+    <section class="stage">
+      <span class="lbl" id="rsKicker">Final results</span>
+      <h2 class="rs-title" id="rsTitle">Shift complete</h2>
+      <p class="rs-sub" id="rsSub"></p>
+      <div class="podium" id="rsPodium"></div>
+      <p class="rs-you" id="rsYou" hidden></p>
+    </section>
+    <section class="card rs-table" id="rsTableCard">
+      <div class="card-head"><h2 id="rsTableTitle">Full ranking</h2><span class="lbl" id="rsTableLbl"></span></div>
+      <div id="rsTable"></div>
+      <div class="row-ctl" style="margin-top:12px"><button class="btn" id="rsReplay">Replay announcement</button><button class="btn" id="rsHome">Back to start</button></div>
+    </section>
+  </main>
+
+  <p class="note foot" id="footNote">This page is a logic and design prototype for the group's Unreal Engine build. It is not Unreal Engine. All temperatures are generated by a simple heat model, not read from sensors.</p>
+</div>
+
+<!-- shift report -->
+<div class="overlay" id="endOv" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="rTitle">
+    <span class="lbl">Shift report</span>
+    <h2 id="rTitle">Shift complete</h2>
+    <div class="res">
+      <div class="kpi"><span class="lbl">Output</span><span class="num" id="rOut">0</span></div>
+      <div class="kpi"><span class="lbl">Breakdowns</span><span class="num" id="rBrk">0</span></div>
+      <div class="kpi"><span class="lbl">Missions</span><span class="num" id="rMis">0 / 4</span></div>
+      <div class="kpi"><span class="lbl">Score</span><span class="num" id="rScore">0</span></div>
+    </div>
+    <div class="code" id="rCodeBox"><span class="lbl">Operator</span><b id="rName"></b><span class="lbl">Result code</span><b class="num" id="rCode"></b></div>
+    <p class="note" style="margin:0" id="rNote">Score = output + 150 per mission − 200 per breakdown. Tell the presenters your name, score and result code so they can add you to the class leaderboard.</p>
+    <p class="submit" id="rSubmit" hidden></p>
+    <div class="row-ctl" id="rPracticeBtns"><button class="btn primary" id="btnAgain">Play again</button><button class="btn" id="btnNew">New player</button></div>
+    <div class="row-ctl" id="rCompBtns" hidden><button class="btn primary" id="btnStand">See live standings</button></div>
+  </div>
+</div>
+
+<!-- start countdown -->
+<div class="overlay countdown" id="cdOv" hidden>
+  <div class="cd-box" aria-live="assertive">
+    <span class="lbl">Shift starts in</span>
+    <span class="cd-num num" id="cdNum">5</span>
+    <span class="note" id="cdNote">Read the dashboard. One machine is already running hot.</span>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="js/config.js"></script>
+<script src="js/sim.js"></script>
+<script src="js/bot.js"></script>
+<script src="js/rules.js"></script>
+<script src="js/net-mock.js"></script>
+<script src="js/net-supabase.js"></script>
+<script src="js/floor.js"></script>
+<script src="js/board.js"></script>
+<script src="js/game.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

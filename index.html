@@ -199,8 +199,9 @@
   <!-- ============================================================ HOST CONSOLE -->
   <main id="scrHost" class="screen" hidden>
     <section class="card host-head">
+      <div class="host-qr" id="hQr" hidden role="img" aria-label="QR code: scan to join this competition"></div>
       <div>
-        <span class="lbl">Join at this page with code</span>
+        <span class="lbl">Scan the QR code, or join with code</span>
         <div class="bigcode num" id="hCode">------</div>
         <span class="note" id="hLink"></span>
       </div>
@@ -297,6 +298,8 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
+<!-- QR code for the join link on the host screen; the app works without it if it fails to load -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 <script src="js/config.js"></script>
 <script src="js/sim.js"></script>
 <script src="js/bot.js"></script>

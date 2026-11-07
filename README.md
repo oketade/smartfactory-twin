@@ -25,7 +25,7 @@ With `js/config.js` left empty (the default), the app uses the **mock backend**.
 ### Classroom demo with 25 players on one computer
 
 1. Open the page and choose **Host a competition** (Individual or Teams).
-2. In the lobby, press **Fill to 25** to add simulated players. They are labelled `SIM` everywhere and are played by a computer strategy with varied skill. They are **not** real students.
+2. Students scan the **QR code** on the host screen (the code is filled in for them) or type the code. In the lobby, press **Fill to 25** to add simulated players. They are labelled `SIM` everywhere and are played by a computer strategy with varied skill. They are **not** real students.
 3. Optional: open the join link in **another browser window** (`?join=CODE`) and register as a real player. Every tab or window is a separate player.
 4. In team mode, press **Assign teams automatically**. Start also does this if you forget.
 5. Press **Start competition**. Everyone gets a 5-second countdown, then the same factory, the same scripted faults and the same random noise.

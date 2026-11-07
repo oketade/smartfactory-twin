@@ -138,9 +138,21 @@ function enterHost() {
   $('hCode').textContent = session.code;
   const link = location.href.split(/[?#]/)[0] + '?join=' + session.code;
   $('hLink').textContent = 'Students open: ' + link;
+  renderJoinQr(link);
   $('simTools').hidden = !net.supportsSimulated; $('simNote').hidden = !net.supportsSimulated;
   show('scrHost');
   unwatch = net.watch(session.code, onHostSnap, { host: true });
+}
+// QR code of the join link (code included, so students only type their name). Optional: if the
+// library did not load, the box stays empty and hidden and the written link is still shown.
+function renderJoinQr(link) {
+  const box = $('hQr'); box.replaceChildren(); box.dataset.ok = '';
+  if (typeof window.qrcode !== 'function') return;
+  try {
+    const qr = window.qrcode(0, 'M'); qr.addData(link); qr.make();
+    box.innerHTML = qr.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
+    box.dataset.ok = '1';
+  } catch (e) { console.warn('[sf] QR code failed', e); }
 }
 function hostShiftTime() { return snap && snap.comp.started_at ? (net.serverNow() - Date.parse(snap.comp.started_at)) / 1000 : 0; }
 function hostAction(label, cls, fn) { return board.h('button', { class: 'btn ' + (cls || ''), text: label, onclick: async ev => { const b = ev.currentTarget; b.disabled = true; try { await fn(b); } catch (ex) { alert(ex.message); } finally { b.disabled = false; } } }); }
@@ -169,8 +181,9 @@ function onHostSnap(s) {
   } else {
     act.append(hostAction('Show winners', 'primary', async () => { shownRevealAt = null; onHostSnap(snap); }), hostAction('New competition', '', async () => goHome()));
   }
-  // lobby card
+  // lobby card (+ join QR: joining is only possible in the lobby)
   $('hLobbyCard').hidden = st !== 'lobby';
+  $('hQr').hidden = st !== 'lobby' || !$('hQr').dataset.ok;
   if (st === 'lobby') {
     document.querySelectorAll('input[name=hcMode]').forEach(r => r.checked = r.value === c.mode);
     if (document.activeElement !== $('hcSize')) $('hcSize').value = c.team_size;

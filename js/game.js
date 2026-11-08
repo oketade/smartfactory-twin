@@ -58,7 +58,7 @@ function showMission() {
   if (!S) return;
   const k = S.mission;
   if (k >= sim.MISSIONS.length) { $('mLabel').textContent = 'All missions done'; $('mTitle').textContent = 'Keep the factory running until the shift ends'; $('mText').textContent = 'Maximise output without breakdowns to raise your score.'; $('mBar').style.width = '100%'; }
-  else { $('mLabel').textContent = `Mission ${k + 1} of 4`; $('mTitle').textContent = sim.MISSIONS[k].t; $('mText').textContent = sim.MISSIONS[k].d; $('mBar').style.width = '0%'; }
+  else { $('mLabel').textContent = `Mission ${k + 1} of 4 · unlocks output ×${sim.multOf(k + 1).toFixed(k === 2 ? 2 : 1)}`; $('mTitle').textContent = sim.MISSIONS[k].t; $('mText').textContent = sim.MISSIONS[k].d; $('mBar').style.width = '0%'; }
   sim.MISSIONS.forEach((_, i) => { $('st' + i).className = 'step' + (i < k ? ' done' : i === k ? ' now' : ''); });
 }
 
@@ -100,7 +100,7 @@ function render() {
   renderWhatIf();
   $('kOut').textContent = Math.round(S.out); $('kBrk').textContent = S.brk; $('kSpd').textContent = S.speed.toFixed(1) + '×';
   $('clock').textContent = `${fmt(Math.min(S.t, sim.SHIFT))} / 6:00`;
-  $('gScore').textContent = sim.score(S);
+  $('gScore').textContent = sim.score(S); $('gMult').textContent = '×' + sim.multOf(S.mDone).toFixed(S.mDone === 3 ? 2 : 1);
   if (S.mission < sim.MISSIONS.length) $('mBar').style.width = Math.min(100, S.mProg * 100) + '%';
   $('ev1').className = 'step' + (S.ev[0] ? ' done' : ''); $('ev2').className = 'step' + (S.ev[1] ? ' done' : ''); $('ev3').className = 'step' + (S.over ? ' done' : '');
 }
@@ -175,12 +175,12 @@ function scheduleEvents(events) {
 
 function onShiftEnd() {
   running = !!ctx; // keep the competition loop alive for the frozen view
-  $('rOut').textContent = Math.round(S.out); $('rBrk').textContent = S.brk; $('rMis').textContent = `${S.mDone} / 4`; $('rScore').textContent = sim.score(S);
+  $('rOut').textContent = Math.round(S.out); $('rBonus').textContent = '+' + Math.round(S.bonus || 0); $('rBrk').textContent = S.brk; $('rMis').textContent = `${S.mDone} / 4`; $('rScore').textContent = sim.score(S);
   $('rTitle').textContent = S.brk === 0 ? 'Clean shift: no breakdowns' : 'Shift complete';
   $('ev3').className = 'step done';
   if (!ctx) {
     $('rCodeBox').hidden = false; $('rPracticeBtns').hidden = false; $('rCompBtns').hidden = true; $('rSubmit').hidden = true;
-    $('rNote').textContent = 'Score = output + 150 per mission − 200 per breakdown. Tell the presenters your name, score and result code so they can add you to the class leaderboard.';
+    $('rNote').textContent = 'Score = output + level bonus + 150 per mission − 200 per breakdown. Tell the presenters your name, score and result code so they can add you to the class leaderboard.';
     $('rName').textContent = player || 'Unnamed'; $('rCode').textContent = resultCode(player, sim.score(S));
     addToBoard({ name: player || 'Unnamed', score: sim.score(S), brk: S.brk });
     $('btnStart').textContent = 'Start shift';

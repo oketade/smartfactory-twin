@@ -72,7 +72,8 @@
         <li>Running hot wears a machine down. At 0% health it breaks.</li>
         <li>To repair: switch the machine OFF, then hold Repair for 3 seconds.</li>
         <li>Use the Forecast lines and the What-if test to act before problems happen.</li>
-        <li><b>Score</b> = output + 150 per mission − 200 per breakdown.</li>
+        <li><b>Level up early:</b> each mission upgrades your factory. Everything produced after it counts extra: ×1.1 after mission 1, ×1.2 after 2, ×1.35 after 3, ×1.5 after all 4.</li>
+        <li><b>Score</b> = output + level bonus + 150 per mission − 200 per breakdown.</li>
       </ul>
     </section>
   </main>
@@ -113,6 +114,7 @@
         <button class="btn" id="btnExit">Exit</button>
       </div>
       <div class="clock" id="gRankBox" hidden><span class="lbl">Live rank</span><span class="num" id="gRank">–</span></div>
+      <div class="clock" title="Every completed mission upgrades your factory: output after it counts extra"><span class="lbl">Level bonus</span><span class="num c-ok" id="gMult">×1.0</span></div>
       <div class="clock"><span class="lbl">Score</span><span class="num" id="gScore">0</span></div>
       <div class="clock"><span class="lbl">Shift time</span><span class="num" id="clock">0:00 / 6:00</span></div>
     </section>
@@ -275,12 +277,13 @@
     <h2 id="rTitle">Shift complete</h2>
     <div class="res">
       <div class="kpi"><span class="lbl">Output</span><span class="num" id="rOut">0</span></div>
-      <div class="kpi"><span class="lbl">Breakdowns</span><span class="num" id="rBrk">0</span></div>
+      <div class="kpi"><span class="lbl">Level bonus</span><span class="num c-ok" id="rBonus">+0</span></div>
       <div class="kpi"><span class="lbl">Missions</span><span class="num" id="rMis">0 / 4</span></div>
-      <div class="kpi"><span class="lbl">Score</span><span class="num" id="rScore">0</span></div>
+      <div class="kpi"><span class="lbl">Breakdowns</span><span class="num" id="rBrk">0</span></div>
+      <div class="kpi wide"><span class="lbl">Score</span><span class="num" id="rScore">0</span></div>
     </div>
     <div class="code" id="rCodeBox"><span class="lbl">Operator</span><b id="rName"></b><span class="lbl">Result code</span><b class="num" id="rCode"></b></div>
-    <p class="note" style="margin:0" id="rNote">Score = output + 150 per mission − 200 per breakdown. Tell the presenters your name, score and result code so they can add you to the class leaderboard.</p>
+    <p class="note" style="margin:0" id="rNote">Score = output + level bonus + 150 per mission − 200 per breakdown. Tell the presenters your name, score and result code so they can add you to the class leaderboard.</p>
     <p class="submit" id="rSubmit" hidden></p>
     <div class="row-ctl" id="rPracticeBtns"><button class="btn primary" id="btnAgain">Play again</button><button class="btn" id="btnNew">New player</button></div>
     <div class="row-ctl" id="rCompBtns" hidden><button class="btn primary" id="btnStand">See live standings</button></div>

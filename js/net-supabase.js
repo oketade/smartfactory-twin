@@ -102,7 +102,7 @@ const api = {
   endCompetition: code => rpc('sf_end', { p_code: code }),
   revealWinners: code => rpc('sf_reveal', { p_code: code }),
   // raw stats only — sf_submit validates them and calculates the score server-side
-  submitResult: (code, _playerId, s, final) => rpc('sf_submit', { p_code: code, p_output: s.output, p_breakdowns: s.breakdowns, p_missions: s.missions, p_final: !!final }),
+  submitResult: (code, _playerId, s, final) => rpc('sf_submit', { p_code: code, p_output: s.output, p_bonus: s.bonus || 0, p_breakdowns: s.breakdowns, p_missions: s.missions, p_final: !!final }),
   async heartbeat() {},  // presence on the realtime channel replaces heartbeats
 
   // live snapshot: Realtime change events trigger a (debounced) re-fetch of sf_snapshot()

@@ -197,9 +197,10 @@ function applyResult(db, p, stats, final) {
   const prev = db.results[p.id];
   if (prev && prev.final) fail('Your final result is already recorded.');
   const err = rules.validateStats(db.comp, stats, final, now()); if (err) fail(err);
-  if (prev && (stats.output < prev.output || stats.missions < prev.missions || stats.breakdowns < prev.breakdowns)) fail('A result cannot go backwards.');
-  const score = sim.scoreOf(stats.output, stats.missions, stats.breakdowns);
-  db.results[p.id] = { output: stats.output, breakdowns: stats.breakdowns, missions: stats.missions, score, final: !!final, at: now() };
+  const bonus = stats.bonus || 0;
+  if (prev && (stats.output < prev.output || bonus < (prev.bonus || 0) || stats.missions < prev.missions || stats.breakdowns < prev.breakdowns)) fail('A result cannot go backwards.');
+  const score = sim.scoreOf(stats.output, stats.missions, stats.breakdowns, bonus);
+  db.results[p.id] = { output: stats.output, bonus, breakdowns: stats.breakdowns, missions: stats.missions, score, final: !!final, at: now() };
   p.last_seen = now();
 }
 function doAssign(db) {

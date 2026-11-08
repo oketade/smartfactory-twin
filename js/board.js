@@ -142,7 +142,7 @@ function results(snap, opts) {
     you.textContent = txt; you.hidden = false;
   } else you.hidden = true;
   $('rsTableTitle').textContent = isTeam ? 'Team ranking' : 'Full ranking';
-  $('rsTableLbl').textContent = isTeam ? 'Average · total · individual contributions' : 'Score = output + 150 × missions − 200 × breakdowns';
+  $('rsTableLbl').textContent = isTeam ? 'Average · total · individual contributions' : 'Score = output + level bonus + 150 × missions − 200 × breakdowns';
   const tbl = $('rsTable');
   tbl.replaceChildren(isTeam ? teamTable(snap, opts) : playerTable(snap, opts));
   if (isTeam) tbl.append(h('h3', { style: 'margin:14px 0 4px;font-size:15px', text: 'Individual ranking' }), playerTable(snap, opts));

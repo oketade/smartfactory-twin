@@ -21,7 +21,11 @@ const MISSIONS = [
 ];
 // Scoring rule shown to players. The authoritative calculation runs server-side
 // (supabase/schema.sql: sf_score) — this copy is only for the on-screen preview.
-const scoreOf = (out, mDone, brk) => Math.round(out) + 150 * mDone - 200 * brk;
+// Level bonus: every completed mission upgrades the factory, so output produced AFTER it
+// counts extra (index = missions completed). Higher level = lasting advantage for the rest of the shift.
+const BONUS = [0, 0.10, 0.20, 0.35, 0.50];
+const scoreOf = (out, mDone, brk, bonus = 0) => Math.round(out) + Math.round(bonus) + 150 * mDone - 200 * brk;
+const multOf = mDone => 1 + BONUS[Math.min(mDone, BONUS.length - 1)];
 const MAX_OUTPUT = Math.ceil(DEF.length * RATE * 2.0 * SHIFT); // 8640: all machines at 2.0× for the whole shift
 
 // mulberry32: small, fast, deterministic
@@ -56,7 +60,7 @@ function restore(json, on) {
 const noop = () => {};
 function fresh(seed, on) {
   return {
-    t: 0, speed: 1.0, wiSpeed: 1.0, out: 0, brk: 0, mission: 0, mDone: 0, mTimer: 0, m3Start: 0, m3Units: 0,
+    t: 0, speed: 1.0, wiSpeed: 1.0, out: 0, bonus: 0, brk: 0, mission: 0, mDone: 0, mTimer: 0, m3Start: 0, m3Units: 0,
     mProg: 0, ev: [false, false], over: false, acc: 0, histAcc: 0, scheduled: [],
     rand: rng(seed == null ? (Math.random() * 2 ** 32) >>> 0 : seed),
     on: Object.assign({ log: noop, toast: noop, mission: noop, end: noop }, on || {}),
@@ -137,7 +141,7 @@ function tick(S, input) {
     const f = forecast(S, m);
     if (f && f.kind !== 'ok' && f.t <= 20 && !m.warned) { m.warned = true; const what = f.kind === 'heat' ? 'overheat' : 'wear out'; S.on.log(`PREDICTION: ${m.name} will ${what} in ~${Math.ceil(f.t)} s`); S.on.toast(`Prediction: ${m.name} will ${what} in about ${Math.ceil(f.t)} s`); }
     if (!f || f.kind === 'ok') m.warned = false;
-    if (m.on && !m.broken) { const u = RATE * S.speed * dt; S.out += u; if (S.mission === 2) S.m3Units += u; }
+    if (m.on && !m.broken) { const u = RATE * S.speed * dt; S.out += u; S.bonus += u * BONUS[S.mDone]; if (S.mission === 2) S.m3Units += u; }
     // repair
     const holding = input && input.repair === i;
     if (holding) {
@@ -180,9 +184,9 @@ function endShift(S) {
   S.on.log('Shift ended');
   S.on.end(S);
 }
-const score = S => scoreOf(S.out, S.mDone, S.brk);
-const stats = S => ({ output: Math.round(S.out), breakdowns: S.brk, missions: S.mDone, t: Math.min(S.t, SHIFT) });
+const score = S => scoreOf(S.out, S.mDone, S.brk, S.bonus || 0);
+const stats = S => ({ output: Math.round(S.out), bonus: Math.round(S.bonus || 0), breakdowns: S.brk, missions: S.mDone, t: Math.min(S.t, SHIFT) });
 
 SF.sim = { SHIFT, AMB, K, RATE, TICK, DEF, MISSIONS, MAX_OUTPUT, rng, fresh, serialize, restore, wear, heatOf, steady, forecast, state, label,
-  toggle, setSpeed, clampSpeed, breakMachine, coolantFault, schedule, tick, advance, skipMission, endShift, score, scoreOf, stats };
+  toggle, setSpeed, clampSpeed, breakMachine, coolantFault, schedule, tick, advance, skipMission, endShift, score, scoreOf, stats, BONUS, multOf };
 })(window.SF = window.SF || {});

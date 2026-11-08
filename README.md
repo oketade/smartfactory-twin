@@ -53,7 +53,8 @@ Tip: Chrome slows down timers in background **tabs**. For a multi-window test, p
 | Speed | 0.5× – 2.0×; output = 4 units/s per running machine × speed |
 | Scripted events | 2:30 Cutter B coolant fault · 4:30 Oven C trip · 6:00 shift ends |
 | Missions | 1 switch off the overheating machine · 2 all green for 60 s · 3 600 units in 60 s · 4 full production for 30 s |
-| Score | output + 150 per mission − 200 per breakdown |
+| Level bonus | each mission upgrades the factory: output produced after it counts ×1.1 / ×1.2 / ×1.35 / ×1.5 (after 1 / 2 / 3 / 4 missions) |
+| Score | output + level bonus + 150 per mission − 200 per breakdown |
 
 Keys: `1` `2` `3` select · `E` ON/OFF · hold `R` repair · `+` `−` speed · `Space` pause (practice only) · `I` instructor panel (practice only).
 
@@ -106,11 +107,12 @@ Both backends implement the same interface (`createCompetition`, `joinCompetitio
 - **Only the anon key is in the frontend.** It is designed to be public. **Never** put the `service_role` key in this repository.
 - Row-level security: a user can only **read** competitions they host or joined. There are **no** insert/update/delete policies. Every change goes through `SECURITY DEFINER` functions (`sf_join`, `sf_start`, `sf_submit`, …), which check who is calling.
 - Only the host (the creator of the competition) can start or end it, assign teams, remove players, send host events and announce winners.
-- **Scores are calculated on the server** (`sf_score`). The browser sends only raw statistics: output, breakdowns and missions.
+- **Scores are calculated on the server** (`sf_score`). The browser sends only raw statistics: output, level bonus, breakdowns and missions.
 - `sf_submit` runs **plausibility checks**:
   - the submission arrives within the shift window, plus 60 s grace
   - output is no more than 24 units/s × elapsed time (max 8,640)
   - missions are 0–4
+  - the level bonus is at most the bonus rate of the level reached × output
   - there is one final result per player
   - values never go backwards
   - progress reports are throttled to one every 2 s

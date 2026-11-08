@@ -44,6 +44,9 @@ function validateStats(comp, stats, final, nowMs) {
   if (output < 0 || output > cap) return 'Output is outside the possible range.';
   if (missions < 0 || missions > sim.MISSIONS.length) return 'Mission count is outside the possible range.';
   if (breakdowns < 0 || breakdowns > 100) return 'Breakdown count is outside the possible range.';
+  // the level bonus can never exceed the bonus rate of the level reached, applied to all output
+  const bonus = stats.bonus == null ? 0 : stats.bonus;
+  if (!Number.isInteger(bonus) || bonus < 0 || bonus > Math.ceil(output * sim.BONUS[missions]) + 5) return 'Level bonus is outside the possible range.';
   return null;
 }
 
@@ -71,7 +74,7 @@ function snapshot(db, nowMs) {
     const r = db.results[p.id];
     return { id: p.id, name: p.name, team_id: p.team_id || null, simulated: !!p.simulated,
       online: !!p.simulated || nowMs - (p.last_seen || 0) < 12000,
-      has_result: !!r, final: !!(r && r.final), score: r ? r.score : 0, output: r ? r.output : 0,
+      has_result: !!r, final: !!(r && r.final), score: r ? r.score : 0, output: r ? r.output : 0, bonus: r ? r.bonus || 0 : 0,
       breakdowns: r ? r.breakdowns : 0, missions: r ? r.missions : 0 };
   });
   rankBy(players, 'score');

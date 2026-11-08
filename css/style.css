@@ -229,7 +229,7 @@ td .simtag{margin-left:6px}
 .overlay{position:fixed;inset:0;background:rgba(3,7,14,.82);display:grid;place-items:center;padding:20px;z-index:20}
 .dialog{background:var(--panel);border:1px solid var(--accent);border-radius:12px;padding:22px 24px;max-width:520px;width:100%;display:grid;gap:12px;max-height:100%;overflow:auto}
 .dialog h2{font-size:26px}
-.res{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.res{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.res .kpi.wide{grid-column:1/-1}
 .code{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:baseline}
 .code .num{font-size:22px;color:var(--accent);letter-spacing:.15em}
 .submit{margin:0;font-weight:600}
